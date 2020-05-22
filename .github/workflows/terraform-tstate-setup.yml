@@ -39,6 +39,62 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@master
     
-    
-  
-     
+    - name: 'Install Terraform'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        sudo apt-get install wget unzip
+        if [ -f "terraform" ] 
+        then
+          echo "File terraform exists." 
+          rm terraform
+        fi
+        wget https://releases.hashicorp.com/terraform/0.12.25/terraform_0.12.25_linux_amd64.zip
+        unzip terraform_0.12.25_linux_amd64.zip 
+        sudo cp terraform /usr/local/bin
+        sudo chmod +x /usr/local/bin
+        terraform --version 
+        popd
+        
+    - name: 'Terraform Init'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        echo 'export ARM_ACCESS_KEY=$(az keyvault secret show --name ${{ steps.tfsetup.outputs.secret_name }} --vault-name ${{ steps.tfsetup.outputs.keyvault_name }} --query value -o tsv)'
+        export ARM_ACCESS_KEY=$(az keyvault secret show --name ${{ steps.tfsetup.outputs.secret_name }} --vault-name ${{ steps.tfsetup.outputs.keyvault_name }} --query value -o tsv)
+        export ARM_CLIENT_ID='${{secrets.ARM_CLIENT_ID}}'
+        export ARM_CLIENT_SECRET='${{secrets.ARM_CLIENT_SECRET}}'
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id | xargs)
+        export ARM_TENANT_ID=$(az account show --query tenantId | xargs)
+        ls
+        cd src/
+        terraform init -reconfigure
+        popd
+
+    - name: 'Terraform Plan'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        export ARM_ACCESS_KEY=$(az keyvault secret show --name ${{ steps.tfsetup.outputs.secret_name }} --vault-name ${{ steps.tfsetup.outputs.keyvault_name }} --query value -o tsv)
+        export ARM_CLIENT_ID='${{secrets.ARM_CLIENT_ID}}'
+        export ARM_CLIENT_SECRET='${{secrets.ARM_CLIENT_SECRET}}'
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id | xargs)
+        export ARM_TENANT_ID=$(az account show --query tenantId | xargs)
+        ls
+        cd src/
+        terraform plan -out=tf.plan
+        popd
+
+    - name: 'Terraform Apply'
+      shell: bash
+      run: |
+        pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+        export ARM_ACCESS_KEY=$(az keyvault secret show --name ${{ steps.tfsetup.outputs.secret_name }} --vault-name ${{ steps.tfsetup.outputs.keyvault_name }} --query value -o tsv)
+        export ARM_CLIENT_ID='${{secrets.ARM_CLIENT_ID}}'
+        export ARM_CLIENT_SECRET='${{secrets.ARM_CLIENT_SECRET}}'
+        export ARM_SUBSCRIPTION_ID=$(az account show --query id | xargs)
+        export ARM_TENANT_ID=$(az account show --query tenantId | xargs)
+        ls
+        cd src/
+        terraform apply tf.plan
+        popd 

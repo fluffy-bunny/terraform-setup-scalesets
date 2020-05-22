@@ -8,25 +8,6 @@ variable "location_name" {
   type        = string
 }
 
-variable "storage_account_name" {
-  description = "(Required) The storage account name."
-  type        = string
-}
-
-variable "plan_name" {
-  description = "(Required) plan."
-  type        = string
-}
-variable "app_insights_name" {
-  description = "(Required) app_insights."
-  type        = string
-}
-variable "func_name" {
-  description = "(Required) func."
-  type        = string
-}
-
-
 variable "tags" {
   description = "Tags to help identify various services."
   type        = map
