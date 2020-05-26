@@ -8,6 +8,11 @@ variable "location_name" {
   type        = string
 }
 
+variable "storage_account_name" {
+  description = "(Required) The storage account name."
+  type        = string
+}
+
 variable "tags" {
   description = "Tags to help identify various services."
   type        = map
